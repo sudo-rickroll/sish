@@ -3,7 +3,7 @@
 #define INPUT_H
 
 int
-validate_input(int *, char **, char *);
+validate_input(int *, char ***, char **);
 
 int
 tokenize_command(char *);
