@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "input.h"
@@ -29,9 +32,26 @@ validate_input(int *argc, char ***argv, char **cmd)
 }
 
 int
-tokenize_command(char *cmd) 
+tokenize_command(char *cmd, char **args) 
 {
-	(void)cmd;
+	int arg_count = 0;
+	char *token;
+	
+	/* Copied from example in man page of strtok(3) */
+	for((token = strtok(cmd, " \t")); token; (token = strtok(NULL, " \t")), arg_count++){
+		if (arg_count >= MAX_ARGS - 1) {
+			fprintf(stderr, "Arguments have a limit of %d", MAX_ARGS - 1);
+			return -1;
+		}
+
+		args[arg_count] = token;
+	}
+
+	args[arg_count] = NULL;
+
+	if (arg_count == 0) {
+		return -1;
+	}
 	return 0;
 }
 

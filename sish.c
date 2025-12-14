@@ -5,15 +5,16 @@
 #include <string.h>
 #include <unistd.h>
 
-/*#include "handlers.h"*/
+#include "builtins.h"
 #include "input.h"
-
-#define SH_NAME "sish$ "
 
 int
 main(int argc, char **argv)
 {
 	char *cmd = {0};
+	char *args[MAX_ARGS];
+
+	(void)setprogname(argv[0]);
 
 	if (signal(SIGINT, SIG_IGN) == SIG_ERR) {
 		err(EXIT_FAILURE, "Unable to ignore SIGINT");
@@ -32,7 +33,7 @@ main(int argc, char **argv)
 	}
 
 	if (cmd != NULL) {
-		if (tokenize_command(cmd) < 0) {
+		if (tokenize_command(cmd, args) < 0) {
 			err(EXIT_FAILURE, "Error tokenizing string");
 		}
 	} else {
@@ -40,10 +41,8 @@ main(int argc, char **argv)
 		size_t input_size;
 		ssize_t input_len;
 		for (;;) {
-			if ((size_t)write(STDOUT_FILENO, SH_NAME, strlen(SH_NAME)) < strlen(SH_NAME)) {
-				perror("Writing shell name");
-
-			}
+			printf("%s$ ", getprogname());
+			fflush(stdout);
 			input_size = 0;
 			/* 
 			 * getline(3) instead of fgets(3) because input could be
@@ -68,8 +67,22 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			if (tokenize_command(input) < 0) {
+			if (tokenize_command(input, args) < 0) {
 				perror("Error tokenizing command");
+			}
+
+			if(strcmp(args[0], "cd") == 0){
+				cd_sish(args[1]);
+				continue;
+			}
+
+			if(strcmp(args[0], "echo") == 0){
+				echo_sish(args[1]);
+				continue;
+			}
+
+			if(strcmp(args[0], "exit") == 0){
+				exit_sish();
 			}
 
 		}
