@@ -93,6 +93,7 @@ expand_token(char *token, int index){
 			fprintf(stderr, "Env too big\n");
 			return -1;
 		}
+		return 0;
 	}
 
 	if (strlcpy(arg_storage[index], token, BUFSIZ) >= BUFSIZ) {
