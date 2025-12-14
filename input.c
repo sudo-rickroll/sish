@@ -70,6 +70,14 @@ expand_token(char *token, int index){
 
 	char *env = {0};
 
+	if (strcmp(token, "$!") == 0) {
+		if (snprintf(arg_storage[index], BUFSIZ, "%d", last_bg_pid) < 0) {
+			perror("snprintf bg pid");
+			return -1;
+		}
+		return 0;
+	}
+
 	if (strcmp(token, "$$") == 0) {
 		if (snprintf(arg_storage[index], BUFSIZ, "%d", getpid()) < 0) {
 			perror("snprintf pid");

@@ -11,6 +11,21 @@
 #include "input.h"
 
 int exit_status = 0;
+pid_t last_bg_pid = 0;
+
+void
+set_shell_env(char *argv_0)
+{
+	char path[BUFSIZ];
+
+	if (realpath(argv_0, path) == NULL) {
+		setenv("SHELL", argv_0, 1);
+		return;
+	}
+
+	setenv("SHELL", path, 1);
+}
+
 
 int
 main(int argc, char **argv)
@@ -19,6 +34,8 @@ main(int argc, char **argv)
 	char *args[MAX_ARGS];
 
 	(void)setprogname(argv[0]);
+
+	set_shell_env(argv[0]);
 
 	if (signal(SIGINT, SIG_IGN) == SIG_ERR) {
 		err(EXIT_FAILURE, "Unable to ignore SIGINT");

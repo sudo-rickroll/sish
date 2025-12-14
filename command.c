@@ -11,7 +11,7 @@
 #include "globals.h"
 
 /*
- * Note: Error codes used here are from 
+ * Note: Exit codes used here are from 
  * https://tldp.org/LDP/abs/html/exitcodes.html
  */
 void
