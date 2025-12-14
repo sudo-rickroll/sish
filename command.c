@@ -9,6 +9,7 @@
 #include "builtins.h"
 #include "command.h"
 #include "globals.h"
+#include "redirect.h"
 #include "trace.h"
 
 /*
@@ -16,19 +17,42 @@
  * https://tldp.org/LDP/abs/html/exitcodes.html
  */
 void
-exec_sish(char **args) {
+exec_sish(char **args, redir_t *redir) {
 	pid_t pid;
 	int status;
+	int saved_stdin = -1, saved_stdout = -1;
+	int builtin_ret = 0;
 
 	trace_command(args);
 
-	if (strcmp(args[0], "cd") == 0) {
-		exit_status= cd_sish(args);
-		return;
-	}
+	if (strcmp(args[0], "cd") == 0 || strcmp(args[0], "echo") == 0) {
+		if (redir->in_file != NULL || redir->out_file != NULL) {
+			saved_stdin = dup(STDIN_FILENO);
+			saved_stdout = dup(STDOUT_FILENO);
+			if (setup_redirection(redir) < 0) {
+				if (saved_stdin >= 0) close(saved_stdin);
+				if (saved_stdout >= 0) close(saved_stdout);
+				exit_status = 1;
+				return;
+			}
+		}
 
-	if (strcmp(args[0], "echo") == 0) {
-		exit_status = echo_sish(args);
+		if (strcmp(args[0], "cd") == 0) {
+			builtin_ret = cd_sish(args);
+		} else if (strcmp(args[0], "echo") == 0) {
+			builtin_ret = echo_sish(args);
+		}
+
+		if (saved_stdin >= 0) {
+			dup2(saved_stdin, STDIN_FILENO);
+			close(saved_stdin);
+		}
+		if (saved_stdout >= 0) {
+			dup2(saved_stdout, STDOUT_FILENO);
+			close(saved_stdout);
+		}
+
+		exit_status = builtin_ret;
 		return;
 	}
 
@@ -48,12 +72,15 @@ exec_sish(char **args) {
 		signal(SIGQUIT, SIG_DFL);
 		signal(SIGTSTP, SIG_DFL);
 
+		if (setup_redirection(redir) < 0) {
+			exit(EXIT_FAILURE);
+		}
+
 		execvp(args[0], args);
 		
-		perror("exec");
-		exit_status = 127;
+		fprintf(stderr, "%s: command not found\n", args[0]);
 
-		exit(EXIT_FAILURE);
+		exit(127);
 	}
 
 	if (waitpid(pid, &status, 0) == -1) {

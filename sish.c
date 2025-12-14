@@ -9,6 +9,7 @@
 #include "command.h"
 #include "globals.h"
 #include "input.h"
+#include "redirect.h"
 
 int exit_status = 0;
 pid_t last_bg_pid = 0;
@@ -56,9 +57,20 @@ main(int argc, char **argv)
 	}
 
 	if (cmd != NULL) {
+		redir_t redir;
+
 		if (tokenize_command(cmd, args) < 0) {
 			err(EXIT_FAILURE, "Error tokenizing string");
 		}
+
+		if (parse_redirections(args, &redir) < 0) {
+			exit(EXIT_FAILURE);
+		}
+
+		if (args[0] != NULL) {
+			exec_sish(args, &redir);
+		}
+		exit(exit_status);
 	} else {
 		char *input = {0};
 		size_t input_size;
@@ -93,10 +105,16 @@ main(int argc, char **argv)
 
 			if (tokenize_command(input, args) < 0) {
 				perror("Error tokenizing command");
+				continue;
 			}
 
-			(void)exec_sish(args);
-			
+			if (args[0] != NULL){
+				redir_t redir;
+				if (parse_redirections(args, &redir) < 0) {
+					continue;
+				}
+				exec_sish(args, &redir);
+			}			
 		}
 	}
 
