@@ -9,6 +9,7 @@
 #include "command.h"
 #include "globals.h"
 #include "input.h"
+#include "pipeline.h"
 #include "redirect.h"
 
 int exit_status = 0;
@@ -59,6 +60,10 @@ main(int argc, char **argv)
 	if (cmd != NULL) {
 		redir_t redir;
 
+		if (execute_pipeline(cmd) < 0) {
+			exit(exit_status == 0 ? EXIT_FAILURE : exit_status);
+		}
+
 		if (tokenize_command(cmd, args) < 0) {
 			err(EXIT_FAILURE, "Error tokenizing string");
 		}
@@ -99,7 +104,7 @@ main(int argc, char **argv)
 				input_len--;
 			}
 
-			if (input[0] == '\0') {
+			if (input_len == 0 || input[0] == '\0') {
 				continue;
 			}
 

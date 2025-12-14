@@ -5,6 +5,7 @@
 
 #include "globals.h"
 #include "input.h"
+#include "pipeline.h"
 #include "trace.h"
 
 
@@ -17,7 +18,7 @@ validate_input(int *argc, char ***argv, char **cmd)
 	while ((ch = getopt(*argc, *argv, "xc:")) != -1) {
 		switch (ch) {
 			case 'x':
-				if(enable_trace(stderr) < 0){
+				if (enable_trace(stderr) < 0) {
 					return -1;
 				}
 				break;
@@ -143,6 +144,22 @@ expand_token(char *token, int index){
 	}
 
 	return 0;
+}
+
+int
+split_pipeline(char *input, char *commands[])
+{
+	int count = 0;
+	char *token;
+	char *last;
+        last = input;
+
+	for ((token = strtok_r(last, "|", &last)); token && count < MAX_PIPELINE; count++) {
+		commands[count] = token;
+	}
+
+	commands[count] = NULL;
+	return count;
 }
 
 
