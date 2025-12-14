@@ -5,7 +5,7 @@ int
 cd_sish(char *);
 
 int
-echo_sish(char *);
+echo_sish(char **);
 
 void
 exit_sish(void);

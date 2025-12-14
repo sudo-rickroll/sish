@@ -77,7 +77,7 @@ main(int argc, char **argv)
 			}
 
 			if(strcmp(args[0], "echo") == 0){
-				echo_sish(args[1]);
+				echo_sish(args);
 				continue;
 			}
 
