@@ -2,7 +2,7 @@
 #define BUILTINS_H
 
 int
-cd_sish(char *);
+cd_sish(char **);
 
 int
 echo_sish(char **);

@@ -7,9 +7,17 @@
 #include "builtins.h"
 
 int
-cd_sish(char *dir)
+cd_sish(char **args)
 {
+	char *dir;
 	struct passwd *pw;
+
+	if (args[2] != NULL) {
+		fprintf(stderr, "cd must have only 1 argument\n");
+		return 1;
+	}
+	
+	dir = args[1];
 
 	if (dir == NULL) {
 		if((dir = getenv("HOME")) == NULL) {

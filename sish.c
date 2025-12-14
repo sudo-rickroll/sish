@@ -8,6 +8,8 @@
 #include "builtins.h"
 #include "input.h"
 
+int exit_status = 0;
+
 int
 main(int argc, char **argv)
 {
@@ -49,6 +51,7 @@ main(int argc, char **argv)
 			 * of any length 
 			 */
 			if((input_len = getline(&input, &input_size, stdin)) == -1){
+				free(input);
 				/* for ctrl+d */
 				if (feof(stdin)) {
 					printf("\n");
@@ -71,13 +74,15 @@ main(int argc, char **argv)
 				perror("Error tokenizing command");
 			}
 
+
+
 			if(strcmp(args[0], "cd") == 0){
-				cd_sish(args[1]);
+				exit_status= cd_sish(args);
 				continue;
 			}
 
 			if(strcmp(args[0], "echo") == 0){
-				echo_sish(args);
+				exit_status = echo_sish(args);
 				continue;
 			}
 

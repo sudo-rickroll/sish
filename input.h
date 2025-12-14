@@ -9,6 +9,9 @@ validate_input(int *, char ***, char **);
 int
 tokenize_command(char *, char**);
 
+int
+expand_token(char *, int);
+
 #endif
 
 
