@@ -12,6 +12,8 @@
 
 int exit_status = 0;
 pid_t last_bg_pid = 0;
+FILE *trace_file = NULL;
+int trace_enabled = 0;
 
 void
 set_shell_env(char *argv_0)

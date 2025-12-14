@@ -9,6 +9,7 @@
 #include "builtins.h"
 #include "command.h"
 #include "globals.h"
+#include "trace.h"
 
 /*
  * Note: Exit codes used here are from 
@@ -18,6 +19,8 @@ void
 exec_sish(char **args) {
 	pid_t pid;
 	int status;
+
+	trace_command(args);
 
 	if (strcmp(args[0], "cd") == 0) {
 		exit_status= cd_sish(args);
