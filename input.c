@@ -40,10 +40,40 @@ int
 tokenize_command(char *cmd, char **args) 
 {
 	int arg_count = 0;
-	char *token;
-	
-	/* Copied from example in man page of strtok(3) */
-	for((token = strtok(cmd, " \t")); token; (token = strtok(NULL, " \t")), arg_count++){
+	char *p;
+	char token[BUFSIZ];
+	int index;
+
+	p = cmd;
+
+	while(*p != '\0') {
+		while (*p == ' ' || *p == '\t') {
+			p++;
+		}
+
+		if (*p == '\0') {
+			break;
+		}
+
+		index = 0;
+		
+		/* For >> */
+		if (*p == '>' && *(p+1) == '>') {
+			token[0] = '>';
+			token[1] = '>';
+			token[2] = '\0';
+			p += 2;
+		} else if (*p == '<' || *p == '>' || *p == '|' || *p == '&') {
+			token[0] = *p;
+			token[1] = '\0';
+			p++;
+		} else {
+			while(*p != '\0' && *p != ' ' && *p != '\t' && !(*p == '<' || *p == '>' || *p == '|' || *p == '&')){
+				token[index++] = *p++;
+			}
+			token[index] = '\0';
+		}
+
 		if (arg_count >= MAX_ARGS - 1) {
 			fprintf(stderr, "Arguments have a limit of %d", MAX_ARGS - 1);
 			return -1;
@@ -55,6 +85,7 @@ tokenize_command(char *cmd, char **args)
 			fprintf(stderr, "Error interpreting %s", token);
 			return -1;
 		}
+		arg_count++;
 	}
 
 	args[arg_count] = NULL;
