@@ -3,11 +3,12 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "globals.h"
 #include "input.h"
 #include "trace.h"
 
+
 static char arg_storage[MAX_ARGS][BUFSIZ];
-extern int exit_status;
 
 int
 validate_input(int *argc, char ***argv, char **cmd)
@@ -26,6 +27,7 @@ validate_input(int *argc, char ***argv, char **cmd)
 			case '?':
 			default:
 				usage();
+				return -1;
 		}
 	}
 	*argc -= optind;

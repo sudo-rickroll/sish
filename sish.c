@@ -6,6 +6,8 @@
 #include <unistd.h>
 
 #include "builtins.h"
+#include "command.h"
+#include "globals.h"
 #include "input.h"
 
 int exit_status = 0;
@@ -74,22 +76,8 @@ main(int argc, char **argv)
 				perror("Error tokenizing command");
 			}
 
-
-
-			if(strcmp(args[0], "cd") == 0){
-				exit_status= cd_sish(args);
-				continue;
-			}
-
-			if(strcmp(args[0], "echo") == 0){
-				exit_status = echo_sish(args);
-				continue;
-			}
-
-			if(strcmp(args[0], "exit") == 0){
-				exit_sish();
-			}
-
+			(void)exec_sish(args);
+			
 		}
 	}
 
