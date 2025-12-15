@@ -154,7 +154,7 @@ split_pipeline(char *input, char *commands[])
 	char *last;
         last = input;
 
-	for ((token = strtok_r(last, "|", &last)); token && count < MAX_PIPELINE; count++) {
+	for ((token = strtok_r(last, "|", &last)); token && count < MAX_PIPELINE; (token = strtok_r(NULL, "|", &last)), count++) {
 		commands[count] = token;
 	}
 

@@ -11,13 +11,14 @@
 #include "globals.h"
 #include "input.h"
 #include "pipeline.h"
-#include "redirection.h"
+#include "redirect.h"
 #include "trace.h"
 
-int execute_pipeline(char *input) {
+int 
+execute_pipeline(char *input) {
 	char *commands[MAX_PIPELINE];
 	char *args[MAX_ARGS];
-	int cmd_count;
+	int cmd_count, forked_count;
 	int pipes[MAX_PIPELINE - 1][2];
 	pid_t pids[MAX_PIPELINE];
 	int i, status;
@@ -42,15 +43,17 @@ int execute_pipeline(char *input) {
 		return 0;
 	}
 
-	/* For multiple pipes */
-	for (i = 0; i < cmd_count - 1; i++) {
-		if (pipe(pipes[i]) < 0) {
-			perror("pipe");
-			return -1;
-		}
-	}
+	forked_count = 0;
 
 	for (i = 0; i < cmd_count; i++) {
+
+		if (i < cmd_count - 1) {
+			if (pipe(pipes[i]) < 0) {
+				perror("pipe");
+				return -1;
+			}
+		}
+
 		if (tokenize_command(commands[i], args) < 0) {
 			continue;
 		}
@@ -67,16 +70,9 @@ int execute_pipeline(char *input) {
 			trace_command(args);
 		}
 
-		if (strcmp(args[0], "cd") == 0 || strcmp(args[0], "echo") == 0 || strcmp(args[0], "exit") == 0) {
-			fprintf(stderr, "Builtins not allowed for now");
-			exit_status = 1;
-
-			for (int j = 0; j < cmd_count - 1; j++) {
-				close(pipes[j][0]);
-				close(pipes[j][1]);
-			}
-
-			return -1;
+		if (strcmp(args[0], "cd") == 0 || strcmp(args[0], "exit") == 0) {
+			pids[i] = -1;
+			continue;
 		}
 
 		if ((pids[i] = fork()) < 0) {
@@ -89,7 +85,7 @@ int execute_pipeline(char *input) {
 			signal(SIGQUIT, SIG_DFL);
 			signal(SIGTSTP, SIG_DFL);
 
-			if (i > 0) {
+			if (i > 0 && pids[i-1] != -1) {
 				if (dup2(pipes[i - 1][0], STDIN_FILENO) < 0) {
 					perror("dup2");
 					exit(EXIT_FAILURE);
@@ -112,10 +108,16 @@ int execute_pipeline(char *input) {
 				exit(EXIT_FAILURE);
 			}
 
+			if (strcmp(args[0], "echo") == 0) {
+				exit(echo_sish(args));
+			}
+
 			execvp(args[0], args);
 			fprintf(stderr, "%s: command not found\n", args[0]);
 			exit(127);
 		}
+
+		forked_count++;
 	}
 
 	for (i = 0; i < cmd_count - 1; i++) {

@@ -35,7 +35,6 @@ int
 main(int argc, char **argv)
 {
 	char *cmd = {0};
-	char *args[MAX_ARGS];
 
 	(void)setprogname(argv[0]);
 
@@ -58,24 +57,13 @@ main(int argc, char **argv)
 	}
 
 	if (cmd != NULL) {
-		redir_t redir;
 
 		if (execute_pipeline(cmd) < 0) {
 			exit(exit_status == 0 ? EXIT_FAILURE : exit_status);
 		}
 
-		if (tokenize_command(cmd, args) < 0) {
-			err(EXIT_FAILURE, "Error tokenizing string");
-		}
-
-		if (parse_redirections(args, &redir) < 0) {
-			exit(EXIT_FAILURE);
-		}
-
-		if (args[0] != NULL) {
-			exec_sish(args, &redir);
-		}
 		exit(exit_status);
+
 	} else {
 		char *input = {0};
 		size_t input_size;
@@ -108,19 +96,10 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			if (tokenize_command(input, args) < 0) {
-				perror("Error tokenizing command");
-				continue;
-			}
-
-			if (args[0] != NULL){
-				redir_t redir;
-				if (parse_redirections(args, &redir) < 0) {
-					continue;
-				}
-				exec_sish(args, &redir);
-			}			
+			execute_pipeline(input);				
 		}
+		free(input);
+		return exit_status;
 	}
 
 	return EXIT_SUCCESS;
