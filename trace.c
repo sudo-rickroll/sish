@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "globals.h"
+#include "portability.h"
 #include "trace.h"
 
 int
@@ -35,6 +36,8 @@ trace_command(char **args)
 void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-x] [-c command]\n", getprogname());
+
+	(void)fprintf(stderr, "usage: %s [-x] [-c command]\n",
+	    getprogname());
 	exit(EXIT_FAILURE);
 }

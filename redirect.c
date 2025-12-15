@@ -17,28 +17,28 @@ parse_redirections(char **args, redir_t *redir)
 
 	for (i = 0, j = 0; args[i] != NULL; i++) {
 		if (strcmp(args[i], "<") == 0) {
-			if (args[i+1] == NULL) {
+			if (args[i + 1] == NULL) {
 				fprintf(stderr, "Missing input file\n");
 				return -1;
 			}
-			redir->in_file = args[i+1];
+			redir->in_file = args[i + 1];
 			i++;
 		} else if (strcmp(args[i], ">") == 0) {
-			if (args[i+1] == NULL) {
+			if (args[i + 1] == NULL) {
 				fprintf(stderr, "Missing output file\n");
 				return -1;
 			}
-			redir->out_file = args[i+1];
+			redir->out_file = args[i + 1];
 			redir->append = 0;
 			i++;
 		} else if (strcmp(args[i], ">>") == 0) {
-		       if (args[i+1] == NULL) {
-			       fprintf(stderr, "Missing output file\n");
-			       return -1;
-		       }
-		       redir->out_file = args[i+1];
-		       redir->append = 1;
-		       i++;
+			if (args[i + 1] == NULL) {
+				fprintf(stderr, "Missing output file\n");
+				return -1;
+			}
+			redir->out_file = args[i + 1];
+			redir->append = 1;
+			i++;
 		} else {
 			args[j++] = args[i];
 		}
@@ -67,7 +67,9 @@ setup_redirection(redir_t *redir)
 	}
 
 	if (redir->out_file != NULL) {
-		int flags = O_WRONLY | O_CREAT;
+		int flags;
+
+		flags = O_WRONLY | O_CREAT;
 		if (redir->append) {
 			flags |= O_APPEND;
 		} else {

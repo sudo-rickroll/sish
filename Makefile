@@ -1,6 +1,6 @@
 CFLAGS = -g -Wall -Werror -Wextra -std=c11
 TARGET_NAME = sish
-OBJECT_FILES = sish.o builtins.o command.o handlers.o input.o pipeline.o redirect.o trace.o
+OBJECT_FILES = sish.o builtins.o command.o input.o pipeline.o portability.o redirect.o trace.o
 
 all: ${TARGET_NAME}
 

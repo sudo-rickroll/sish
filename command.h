@@ -4,6 +4,6 @@
 #include "redirect.h"
 
 void
-exec_sish(char **, redir_t *);
+exec_sish_bg(char **, redir_t *, int);
 
 #endif

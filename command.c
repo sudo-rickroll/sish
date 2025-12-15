@@ -17,21 +17,36 @@
  * https://tldp.org/LDP/abs/html/exitcodes.html
  */
 void
-exec_sish(char **args, redir_t *redir) {
+exec_sish_bg(char **args, redir_t *redir, int background)
+{
 	pid_t pid;
 	int status;
-	int saved_stdin = -1, saved_stdout = -1;
-	int builtin_ret = 0;
+	int saved_stdin, saved_stdout;
+	int builtin_ret;
+
+	saved_stdin = -1;
+	saved_stdout = -1;
+	builtin_ret = 0;
 
 	trace_command(args);
 
 	if (strcmp(args[0], "cd") == 0 || strcmp(args[0], "echo") == 0) {
+		if (background) {
+			fprintf(stderr, "Cannot background builtin commands\n");
+			exit_status = 1;
+			return;
+		}
+
 		if (redir->in_file != NULL || redir->out_file != NULL) {
 			saved_stdin = dup(STDIN_FILENO);
 			saved_stdout = dup(STDOUT_FILENO);
 			if (setup_redirection(redir) < 0) {
-				if (saved_stdin >= 0) close(saved_stdin);
-				if (saved_stdout >= 0) close(saved_stdout);
+				if (saved_stdin >= 0) {
+					close(saved_stdin);
+				}
+				if (saved_stdout >= 0) {
+					close(saved_stdout);
+				}
 				exit_status = 1;
 				return;
 			}
@@ -83,6 +98,13 @@ exec_sish(char **args, redir_t *redir) {
 		exit(127);
 	}
 
+	if (background) {
+		last_bg_pid = pid;
+		printf("[%d]\n", last_bg_pid);
+		exit_status = 0;
+		return;
+	}
+
 	if (waitpid(pid, &status, 0) == -1) {
 		perror("waitpid");
 		exit_status = -1;
@@ -98,4 +120,3 @@ exec_sish(char **args, redir_t *redir) {
 		exit_status = 128 + WTERMSIG(status);
 	}
 }
-

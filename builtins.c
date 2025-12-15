@@ -20,8 +20,8 @@ cd_sish(char **args)
 	dir = args[1];
 
 	if (dir == NULL) {
-		if((dir = getenv("HOME")) == NULL) {
-			if((pw = getpwuid(getuid())) == NULL) {
+		if ((dir = getenv("HOME")) == NULL) {
+			if ((pw = getpwuid(getuid())) == NULL) {
 				perror("getpwuid");
 				return 1;
 			}
@@ -30,8 +30,8 @@ cd_sish(char **args)
 	}
 
 	if (chdir(dir) != 0) {
-	       perror("chdir");
-	       return 1;
+		perror("chdir");
+		return 1;
 	}     
 	
 	return 0;
@@ -42,10 +42,10 @@ echo_sish(char **words)
 {
 	int pointer;
 
-	for(pointer = 1; words[pointer] != NULL; pointer++){
+	for (pointer = 1; words[pointer] != NULL; pointer++) {
 		printf("%s", words[pointer]);
 		if (words[pointer + 1] != NULL) {
-				printf(" ");
+			printf(" ");
 		}
 	}
 
@@ -55,7 +55,7 @@ echo_sish(char **words)
 }
 
 void
-exit_sish()
+exit_sish(void)
 {
 	exit(EXIT_SUCCESS);
 }

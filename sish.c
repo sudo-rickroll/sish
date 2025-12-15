@@ -33,6 +33,7 @@ set_shell_env(char *argv_0)
 	setenv("SHELL", path, 1);
 #else
 	char *resolved;
+
 	resolved = realpath(argv_0, NULL);
 	if (resolved == NULL) {
 		setenv("SHELL", argv_0, 1);
@@ -47,7 +48,15 @@ set_shell_env(char *argv_0)
 int
 main(int argc, char **argv)
 {
-	char *cmd = {0};
+	char *cmd;
+	int background;
+	size_t len;
+	char *input;
+	size_t input_size;
+	ssize_t input_len;
+
+	cmd = NULL;
+	background = 0;
 
 	(void)setprogname(argv[0]);
 
@@ -70,17 +79,16 @@ main(int argc, char **argv)
 	}
 
 	if (cmd != NULL) {
+		background = check_background(cmd);
 
-		if (execute_pipeline(cmd) < 0) {
+		if (execute_pipeline_bg(cmd, background) < 0) {
 			exit(exit_status == 0 ? EXIT_FAILURE : exit_status);
 		}
 
 		exit(exit_status);
 
 	} else {
-		char *input = {0};
-		size_t input_size;
-		ssize_t input_len;
+		input = NULL;
 		for (;;) {
 			printf("%s$ ", getprogname());
 			fflush(stdout);
@@ -89,7 +97,7 @@ main(int argc, char **argv)
 			 * getline(3) instead of fgets(3) because input could be
 			 * of any length 
 			 */
-			if((input_len = getline(&input, &input_size, stdin)) == -1){
+			if ((input_len = getline(&input, &input_size, stdin)) == -1) {
 				free(input);
 				/* for ctrl+d */
 				if (feof(stdin)) {
@@ -109,14 +117,18 @@ main(int argc, char **argv)
 				continue;
 			}
 
-			execute_pipeline(input);				
+			background = check_background(input);
+
+			len = strlen(input);
+			if (len == 0) {
+				continue;
+			}
+
+			execute_pipeline_bg(input, background);				
 		}
 		free(input);
 		return exit_status;
 	}
 
 	return EXIT_SUCCESS;
-
 }
-
-

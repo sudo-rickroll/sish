@@ -15,13 +15,14 @@
 #include "trace.h"
 
 int 
-execute_pipeline(char *input) {
+execute_pipeline_bg(char *input, int background)
+{
 	char *commands[MAX_PIPELINE];
 	char *args[MAX_ARGS];
 	int cmd_count, forked_count;
 	int pipes[MAX_PIPELINE - 1][2];
 	pid_t pids[MAX_PIPELINE];
-	int i, status;
+	int i, j, status;
 	redir_t redir;
 
 	cmd_count = split_pipeline(input, commands);
@@ -39,10 +40,17 @@ execute_pipeline(char *input) {
 			return -1;
 		}
 
-		exec_sish(args, &redir);
+		if (strcmp(args[0], "exit") == 0) {
+			exit_sish();
+		}
+
+		exec_sish_bg(args, &redir, background);
 		return 0;
 	}
 
+	/* For pipelines with cd or exit, I'm skipping those commands
+	 * since '/bin/sh' doesn't do anything for them anyways
+	 */
 	forked_count = 0;
 
 	for (i = 0; i < cmd_count; i++) {
@@ -55,14 +63,17 @@ execute_pipeline(char *input) {
 		}
 
 		if (tokenize_command(commands[i], args) < 0) {
+			pids[i] = -1;
 			continue;
 		}
 
 		if (args[0] == NULL) {
+			pids[i] = -1;
 			continue;
 		}
 
 		if (parse_redirections(args, &redir) < 0) {
+			pids[i] = -1;
 			continue;
 		}
 
@@ -85,7 +96,7 @@ execute_pipeline(char *input) {
 			signal(SIGQUIT, SIG_DFL);
 			signal(SIGTSTP, SIG_DFL);
 
-			if (i > 0 && pids[i-1] != -1) {
+			if (i > 0) {
 				if (dup2(pipes[i - 1][0], STDIN_FILENO) < 0) {
 					perror("dup2");
 					exit(EXIT_FAILURE);
@@ -99,7 +110,7 @@ execute_pipeline(char *input) {
 				}
 			}
 
-			for (int j = 0; j < cmd_count - 1; j++) {
+			for (j = 0; j < cmd_count - 1; j++) {
 				close(pipes[j][0]);
 				close(pipes[j][1]);
 			}
@@ -125,7 +136,24 @@ execute_pipeline(char *input) {
 		close(pipes[i][1]);
 	}
 
+	if (background) {
+		/* Setting last_bg_pid to the last forked process */
+		for (i = cmd_count - 1; i >= 0; i--) {
+			if (pids[i] != -1) {
+				last_bg_pid = pids[i];
+				break;
+			}
+		}
+		printf("[%d]\n", last_bg_pid);
+		exit_status = 0;
+		return 0;
+	}
+
 	for (i = 0; i < cmd_count; i++) {
+		if (pids[i] == -1) {
+			continue;
+		}
+
 		if (waitpid(pids[i], &status, 0) < 0) {
 			perror("waitpid");
 			exit_status = 1;
@@ -143,4 +171,3 @@ execute_pipeline(char *input) {
 
 	return 0;
 }
-

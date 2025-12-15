@@ -4,6 +4,6 @@
 #define MAX_PIPELINE 64
 
 int
-execute_pipeline(char *);
+execute_pipeline_bg(char *, int);
 
 #endif
