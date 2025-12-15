@@ -40,7 +40,15 @@ execute_pipeline_bg(char *input, int background)
 			return -1;
 		}
 
+		/* /bin/sh returned 0 for '<file' command */
+		if (args[0] == NULL) {
+			return 0;
+		}
+
 		if (strcmp(args[0], "exit") == 0) {
+			if (trace_enabled) {
+				trace_command(args);
+			}
 			exit_sish();
 		}
 
@@ -48,9 +56,6 @@ execute_pipeline_bg(char *input, int background)
 		return 0;
 	}
 
-	/* For pipelines with cd or exit, I'm skipping those commands
-	 * since '/bin/sh' doesn't do anything for them anyways
-	 */
 	forked_count = 0;
 
 	for (i = 0; i < cmd_count; i++) {
@@ -80,8 +85,13 @@ execute_pipeline_bg(char *input, int background)
 		if (trace_enabled) {
 			trace_command(args);
 		}
+	
+		/* For pipelines with cd or exit, I'm skipping those commands
+	 	 * since '/bin/sh' doesn't do anything for them anyways
+	 	 */
 
-		if (strcmp(args[0], "cd") == 0 || strcmp(args[0], "exit") == 0) {
+		if (strcmp(args[0], "cd") == 0 || strcmp(args[0], "exit") == 0)
+	       	{
 			pids[i] = -1;
 			continue;
 		}
