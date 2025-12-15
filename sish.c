@@ -10,7 +10,9 @@
 #include "globals.h"
 #include "input.h"
 #include "pipeline.h"
+#include "portability.h"
 #include "redirect.h"
+
 
 int exit_status = 0;
 pid_t last_bg_pid = 0;
@@ -21,13 +23,24 @@ void
 set_shell_env(char *argv_0)
 {
 	char path[BUFSIZ];
-
+	
+#ifdef __NetBSD__
 	if (realpath(argv_0, path) == NULL) {
 		setenv("SHELL", argv_0, 1);
 		return;
 	}
 
 	setenv("SHELL", path, 1);
+#else
+	char *resolved;
+	resolved = realpath(argv_0, NULL);
+	if (resolved == NULL) {
+		setenv("SHELL", argv_0, 1);
+		return;
+	}
+	setenv("SHELL", resolved, 1);
+	free(resolved);
+#endif
 }
 
 
