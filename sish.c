@@ -1,4 +1,5 @@
 #include <err.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,24 +25,12 @@ set_shell_env(char *argv_0)
 {
 	char path[BUFSIZ];
 	
-#ifdef __NetBSD__
 	if (realpath(argv_0, path) == NULL) {
 		setenv("SHELL", argv_0, 1);
 		return;
 	}
 
 	setenv("SHELL", path, 1);
-#else
-	char *resolved;
-
-	resolved = realpath(argv_0, NULL);
-	if (resolved == NULL) {
-		setenv("SHELL", argv_0, 1);
-		return;
-	}
-	setenv("SHELL", resolved, 1);
-	free(resolved);
-#endif
 }
 
 
