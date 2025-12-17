@@ -87,7 +87,8 @@ execute_pipeline_bg(char *input, int background)
 		}
 	
 		/* For pipelines with cd or exit, I'm skipping those commands
-	 	 * since '/bin/sh' doesn't do anything for them anyways
+	 	 * since actions taken by '/bin/sh' for the same result in
+		 * no significant side-effects
 	 	 */
 
 		if (strcmp(args[0], "cd") == 0 || strcmp(args[0], "exit") == 0)
